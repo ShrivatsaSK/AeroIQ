@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard - AeroIQ</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Link to your CSS file -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Include Chart.js -->
+    <style>
+        body {
+            background-color: var(--background-dark);
+            color: var(--text-primary);
+            font-family: Arial, sans-serif;
+        }
+        header {
+            background: rgba(30, 30, 30, 0.8);
+            color: var(--text-primary);
+            padding: 10px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        main {
+            margin: 20px;
+            padding: 20px;
+            background: rgba(45, 45, 45, 0.9);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        h2 {
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+        .chart-container {
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        canvas {
+            max-width: 600px; /* Adjusted size for better visibility */
+            margin: 20px auto; /* Center the charts */
+        }
+        .summary {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+        .summary-card {
+            background: rgba(60, 60, 60, 0.8);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            color: var(--text-primary);
+            flex: 1;
+            margin: 0 10px;
+        }
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: var(--text-secondary);
+        }
+        .prediction {
+            background-color: #f0f0f0;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Analytics Dashboard</h1>
+    </header>
+    <main>
+        <section id="analytics-data">
+            <h2>Data Overview</h2>
+            <div class="summary">
+                <div class="summary-card">
+                    <h3>Average PPM</h3>
+                    <p id="avgPPM">--</p>
+                </div>
+                <div class="summary-card">
+                    <h3>Max PPM</h3>
+                    <p id="maxPPM">--</p>
+                </div>
+                <div class="summary-card">
+                    <h3>Min PPM</h3>
+                    <p id="minPPM">--</p>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="barChart" width="400" height="200"></canvas> <!-- Bar Chart -->
+                <canvas id="lineChart" width="400" height="200"></canvas> <!-- Line Chart -->
+            </div>
+        </section>
+        <div class="prediction">
+            <h2>Predicted Air Quality Index (AQI)</h2>
+            <p id="predictedAqi">Loading...</p>
+        </div>
+    </main>
+    <footer>
+        <p>&copy; 2023 AeroIQ. All rights reserved.</p>
+    </footer>
+    <script>
+        // Sample data for demonstration
+        const sampleData = [
+            { timestamp: '2023-01-01', ppm: 400 },
+            { timestamp: '2023-01-02', ppm: 420 },
+            { timestamp: '2023-01-03', ppm: 450 },
+            { timestamp: '2023-01-04', ppm: 380 },
+            { timestamp: '2023-01-05', ppm: 410 },
+            { timestamp: '2023-01-06', ppm: 430 },
+            { timestamp: '2023-01-07', ppm: 440 },
+            { timestamp: '2023-01-08', ppm: 460 },
+            { timestamp: '2023-01-09', ppm: 470 },
+            { timestamp: '2023-01-10', ppm: 480 },
+        ];
+
+        // Calculate average, max, and min PPM
+        const ppmValues = sampleData.map(data => data.ppm);
+        const avgPPM = (ppmValues.reduce((a, b) => a + b, 0) / ppmValues.length).toFixed(2);
+        const maxPPM = Math.max(...ppmValues);
+        const minPPM = Math.min(...ppmValues);
+
+        document.getElementById('avgPPM').innerText = avgPPM;
+        document.getElementById('maxPPM').innerText = maxPPM;
+        document.getElementById('minPPM').innerText = minPPM;
+
+        // Bar Chart
+        const ctxBar = document.getElementById('barChart').getContext('2d');
+        const barChart = new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+                labels: sampleData.map(data => data.timestamp),
+                datasets: [{
+                    label: 'PPM Levels',
+                    data: ppmValues,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Line Chart
+        const ctxLine = document.getElementById('lineChart').getContext('2d');
+        const lineChart = new Chart(ctxLine, {
+            type: 'line',
+            data: {
+                labels: sampleData.map(data => data.timestamp),
+                datasets: [{
+                    label: 'Visitors',
+                    data: [65, 59, 80, 81, 56],
+                    fill: false,
+                    borderColor: 'rgba(153, 102, 255, 1)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Fetch prediction from the backend
+        function fetchPrediction() {
+            fetch('http://localhost:5000/predict') // Ensure this matches your Flask server's address
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('predictedAqi').innerText = `Predicted AQI: ${data.predicted_aqi.toFixed(2)}`;
+                })
+                .catch(error => {
+                    console.error('Error fetching prediction:', error);
+                    document.getElementById('predictedAqi').innerText = 'Error fetching prediction';
+                });
+        }
+
+        // Fetch prediction on page load
+        document.addEventListener('DOMContentLoaded', fetchPrediction);
+    </script>
+</body>
+</html>

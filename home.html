@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <title>Smart Air Quality Monitor</title>
+    <link rel='stylesheet' type='text/css' href='styles.css'>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="left-panel">
+            <div class="ip-config">
+                <input type="text" id="ipAddress" placeholder="Enter ESP32 IP Address">
+                <button onclick="connectToESP()">Connect</button>
+            </div>
+            <div class="air-quality-card">
+                <h1>Air Quality Index</h1>
+                <div class="air-quality-score">
+                    <div class="score-circle">
+                        <span id="airQuality">--</span>
+                        <span class="unit">PPM</span>
+                    </div>
+                    <p class="score-label">Total Air Score</p>
+                </div>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-value" id="co2">--</span>
+                    <span class="stat-label">CO₂</span>
+                    <span class="stat-status" id="co2-status">Good</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value" id="nh3">--</span>
+                    <span class="stat-label">NH₃</span>
+                    <span class="stat-status" id="nh3-status">Medium</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value" id="nox">--</span>
+                    <span class="stat-label">NOx</span>
+                    <span class="stat-status" id="nox-status">Bad</span>
+                </div>
+            </div>
+        </div>
+        <div class="right-panel">
+            <div class="history-card">
+                <div class="history-header">
+                    <h3>Air Quality History</h3>
+                    <span class="material-icons">timeline</span>
+                </div>
+                <canvas id="airQualityChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let chart;
+        const chartData = {
+            labels: [],
+            datasets: [{
+                label: 'Air Quality (PPM)',
+                data: [],
+                borderColor: '#1a73e8',
+                tension: 0.4
+            }]
+        };
+
+        function initChart() {
+            const ctx = document.getElementById('airQualityChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateData() {
+            const ip = document.getElementById('ipAddress').value || localStorage.getItem('espIP') || window.location.hostname;
+            fetch(`http://${ip}/data`, {
+                method: 'GET',
+                mode: 'cors',
+                headers: {
+                    'Accept': 'application/json',
+                },
+                cache: 'no-store'
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const ppmValue = data.ppm || data.sensor_value || 0;
+                    document.getElementById('airQuality').innerHTML = Math.round(ppmValue);
+                    
+                    const now = new Date();
+                    chartData.labels.push(now.toLocaleTimeString());
+                    chartData.datasets[0].data.push(ppmValue);
+                    
+                    if (chartData.labels.length > 10) {
+                        chartData.labels.shift();
+                        chartData.datasets[0].data.shift();
+                    }
+                    
+                    chart.update();
+
+                    document.getElementById('co2').innerHTML = Math.round(ppmValue * 0.8);
+                    document.getElementById('nh3').innerHTML = Math.round(ppmValue * 0.4);
+                    document.getElementById('nox').innerHTML = Math.round(ppmValue * 0.6);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('airQuality').innerHTML = 'Error';
+                    document.getElementById('co2').innerHTML = '--';
+                    document.getElementById('nh3').innerHTML = '--';
+                    document.getElementById('nox').innerHTML = '--';
+                    if (window.updateInterval) {
+                        clearInterval(window.updateInterval);
+                    }
+                });
+        }
+
+        function connectToESP() {
+            const ip = document.getElementById('ipAddress').value;
+            if (ip) {
+                localStorage.setItem('espIP', ip);
+                if (window.updateInterval) {
+                    clearInterval(window.updateInterval);
+                }
+                updateData();
+                window.updateInterval = setInterval(updateData, 2000);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedIP = localStorage.getItem('espIP');
+            if (savedIP) {
+                document.getElementById('ipAddress').value = savedIP;
+            }
+        });
+
+        initChart();
+        updateData();
+    </script>
+</body>
+</html>

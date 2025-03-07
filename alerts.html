@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <title>AeroIQ - Alerts</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css"> <!-- Link to your CSS file -->
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #121212; /* Dark background */
+            color: #ffffff; /* Light text for readability */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .nav-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(30, 30, 30, 0.9); /* Dark background for nav */
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+        }
+
+        .nav-logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ffffff;
+            text-decoration: none;
+        }
+
+        .alert-container {
+            width: 100%;
+            max-width: 800px;
+            padding: 2rem;
+            text-align: center;
+            background: rgba(45, 45, 45, 0.9); /* Dark background for alerts */
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .alert-header {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            color: #ff6347; /* Tomato color for header */
+        }
+
+        .alert-item {
+            background: #1e1e1e; /* Dark background for alert items */
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            border: 1px solid #ff9999; /* Light red border */
+        }
+
+        .alert-icon {
+            font-size: 3rem;
+            margin-right: 1rem;
+            color: #ff0000; /* Red color for alerts */
+        }
+
+        .alert-text {
+            font-size: 1.5rem;
+            color: #ffffff; /* Light text for readability */
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 1rem;
+            text-align: center;
+            color: #a0a0a0;
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav-bar">
+        <a href="/home" class="nav-logo">AeroIQ</a>
+    </nav>
+
+    <div class="alert-container" id="alertContainer">
+        <div class="alert-header">Critical Alerts</div>
+        <div id="alertList">
+            <!-- Alerts will be dynamically inserted here -->
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2024 AeroIQ. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Simulated sensor data for demonstration purposes
+        const sensorData = {
+            aqi: 160, // Example AQI value
+            ammonia: 30, // Example NH₃ value in ppm
+            nox: 0.15, // Example NOₓ value in ppm
+            co2: 1200 // Example CO₂ value in ppm
+        };
+
+        function checkAlerts(data) {
+            const alerts = [];
+
+            // AQI Alerts
+            if (data.aqi > 300) {
+                alerts.push("Hazardous: Serious health risks; avoid outdoor exposure.");
+            } else if (data.aqi > 200) {
+                alerts.push("Very Unhealthy: Emergency conditions; significant risk for everyone.");
+            } else if (data.aqi > 150) {
+                alerts.push("Unhealthy: Health risks for everyone; avoid prolonged exposure.");
+            } else if (data.aqi > 100) {
+                alerts.push("Unhealthy for Sensitive Groups: May cause health issues for children, elderly, or those with respiratory conditions.");
+            } else if (data.aqi > 50) {
+                alerts.push("Moderate: Acceptable but may affect sensitive groups.");
+            }
+
+            // Ammonia Alerts
+            if (data.ammonia > 35) {
+                alerts.push("High Ammonia Levels: Exceeds Short-Term Exposure Limit (STEL).");
+            } else if (data.ammonia > 25) {
+                alerts.push("Elevated Ammonia Levels: Exceeds Time-Weighted Average (TWA).");
+            }
+
+            // Nitrogen Oxides Alerts
+            if (data.nox > 0.1) {
+                alerts.push("High NOₓ Levels: Exceeds Short-Term Limit.");
+            }
+
+            // Carbon Dioxide Alerts
+            if (data.co2 > 2000) {
+                alerts.push("High CO₂ Levels: May cause cognitive impairment and headaches.");
+            } else if (data.co2 > 1000) {
+                alerts.push("Elevated CO₂ Levels: May cause drowsiness and discomfort.");
+            }
+
+            return alerts;
+        }
+
+        function displayAlerts() {
+            const alerts = checkAlerts(sensorData);
+            const alertList = document.getElementById('alertList');
+
+            if (alerts.length === 0) {
+                alertList.innerHTML = "<div class='alert-item'><span class='alert-text'>No critical alerts at this time.</span></div>";
+            } else {
+                alerts.forEach(alert => {
+                    const alertItem = document.createElement('div');
+                    alertItem.className = 'alert-item';
+                    alertItem.innerHTML = `<span class='material-icons alert-icon'>warning</span><div class='alert-text'>${alert}</div>`;
+                    alertList.appendChild(alertItem);
+                });
+            }
+        }
+
+        // Display alerts on page load
+        displayAlerts();
+    </script>
+</body>
+</html>

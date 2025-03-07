@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <title>AeroIQ - Smart Air Quality Monitor</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script>
+        // Live reload functionality
+        (function() {
+            const ip = window.location.hostname || 'localhost';
+            const ws = new WebSocket(`ws://${ip}:81`);
+            
+            ws.onclose = function() {
+                console.log('WebSocket closed. Attempting to reconnect...');
+                // Implement reconnection logic here if needed
+            };
+            
+            ws.onerror = function() {
+                console.log('WebSocket error. Attempting to reconnect...');
+                // Implement reconnection logic here if needed
+            };
+
+            // Optional: Implement a function to attempt reconnection
+            function attemptReconnection() {
+                setTimeout(() => {
+                    console.log('Reconnecting...');
+                    // Recreate the WebSocket connection
+                    const newWs = new WebSocket(`ws://${ip}:81`);
+                    // Reassign event handlers if necessary
+                }, 5000); // Retry every 5 seconds
+            }
+        })();
+    </script>
+    <style>
+        /* Add to your existing styles.css */
+        .hero-section {
+    height: 100vh;
+    background: linear-gradient(135deg, #1e1e1e 0%, #2d2d2d 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    animation: fadeIn 1s ease-in-out;
+}
+
+/* Add radial glow effect */
+.hero-section::before {
+    content: "";
+    position: absolute;
+    width: 80%;
+    height: 80%;
+    background: radial-gradient(circle, rgba(52, 168, 83, 0.4), rgba(26, 115, 232, 0.15), transparent);
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    filter: blur(60px);
+    z-index: 1;
+}
+
+.hero-content {
+    z-index: 2; /* Ensures text stays on top of glow */
+    max-width: 800px;
+    padding: 2rem;
+    animation: slideIn 1s ease-in-out;
+}
+
+        .hero-title {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #34a853, #1a73e8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            transition: transform 0.3s ease;
+        }
+
+        .hero-title:hover {
+            transform: scale(1.05);
+        }
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            color: #a0a0a0;
+            margin-bottom: 2rem;
+            transition: color 0.3s ease;
+        }
+
+        .hero-subtitle:hover {
+            color: #ffffff;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .cta-button {
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: transform 0.3s ease, background 0.3s ease;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .primary-button {
+            background: linear-gradient(135deg, #34a853, #1a73e8);
+            color: white;
+            border: none;
+        }
+
+        .secondary-button {
+            background: transparent;
+            color: white;
+            border: 2px solid #1a73e8;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            padding: 4rem 2rem;
+            background: rgba(30, 30, 30, 0.5);
+            backdrop-filter: blur(10px);
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        .feature-card {
+            background: rgba(45, 45, 45, 0.9);
+            padding: 2rem;
+            border-radius: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--feature-color-start), var(--feature-color-end));
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--feature-color-start), var(--feature-color-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover .feature-icon {
+            transform: scale(1.1);
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--feature-color-start), var(--feature-color-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .feature-card p {
+            color: #a0a0a0;
+            line-height: 1.6;
+            font-size: 1.1rem;
+        }
+
+        .team-section {
+            padding: 4rem 2rem;
+            text-align: center;
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .team-member {
+            background: #2d2d2d;
+            padding: 2rem;
+            border-radius: 24px;
+            transition: transform 0.3s ease;
+        }
+
+        .team-member:hover {
+            transform: scale(1.05);
+        }
+        .team-member h3,  
+.team-member p {  
+    color: white;
+}
+        .member-photo {
+    width: 120px; /* Adjust the size as needed */
+    height: 120px;
+    border-radius: 50%; /* Makes the image rounded */
+    object-fit: cover; /* Ensures the image covers the entire area */
+    margin-bottom: 10px; /* Spacing between the photo and name */
+    border: 3px solid #fff; /* Optional: Adds a white border around the image */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Optional: Adds a slight shadow */
+}
+
+
+        .footer {
+            background: #1e1e1e;
+            padding: 2rem;
+            text-align: center;
+            color: #a0a0a0;
+        }
+
+        .nav-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(30, 30, 30, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+        }
+
+        .nav-logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Add styles for the popup */
+        .popup {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #ff6347;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            animation: fadeIn 0.5s;
+        }
+
+        .teammate-name {
+            color: #e7e7e7;
+            font-weight: bold;
+            background-color: transparent;
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        .teammates-palette {
+            border: 2px solid #1a73e8;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .data-analytics-tab {
+            width: 80%; /* Adjust width as needed */
+            height: 100%; /* Set to auto to allow content to dictate height */
+            max-height: 600px; /* Optional: Set a maximum height */
+            padding: 20px; /* Adjust padding for spacing */
+            font-size: 16px; /* Adjust font size for readability */
+            margin: 0 auto; /* Center the tab horizontally */
+            box-sizing: border-box; /* Include padding and border in the element's total width and height */
+            overflow-y: auto; /* Allow vertical scrolling if content overflows */
+            border: 1px solid #ccc; /* Optional: Add a border for definition */
+            border-radius: 8px; /* Optional: Round the corners */
+            background-color: #f9f9f9; /* Optional: Set a background color */
+        }
+
+        #targetSection {
+            padding: 20px;
+            margin-top: 20px;
+            background-color: #f0f0f0; /* Example background color */
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav-bar">
+        <a href="/home" class="nav-logo">AeroIQ</a>
+        <div class="nav-links">
+            <!-- Remove or comment out the login, signup, and learn more buttons -->
+            <!--
+            <a href="login.html" class="cta-button primary-button" style="text-decoration: none;">Login</a>
+            <a href="signup.html" class="cta-button secondary-button" style="text-decoration: none;">Sign Up</a>
+            -->
+        </div>
+    </nav>
+    <div class="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-title">AeroIQ</h1>
+            <p class="hero-subtitle">Intelligent Air Quality Monitoring</p>
+            <p class="hero-subtitle">Monitor and improve your indoor air quality in real-time</p>
+            <div class="cta-buttons">
+                
+                <a href="#features" class="cta-button secondary-button" style="text-decoration: none;">Get Started</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="features" class="features-grid">
+        <a href="home.html" style="text-decoration: none;"><div class="feature-card" style="--feature-color-start: #00C853; --feature-color-end: #1a73e8;">
+             <span class="feature-icon material-icons">eco</span>
+           <h3>Real-time Monitoring</h3>
+            <p>Track air quality parameters with instant updates and live visualization</p>
+        </div></a>
+        <a href="Analytics.html" style="text-decoration: none;"><div class="feature-card" style="--feature-color-start: #FF6D00; --feature-color-end: #F50057;">
+            <span class="feature-icon material-icons">analytics</span>
+            <h3>Data Analytics</h3>
+            <p>Advanced analytics with historical trends and predictive insights</p>
+        </div></a>
+        <a href="alerts.html" style="text-decoration: none;"><div class="feature-card" style="--feature-color-start: #6200EA; --feature-color-end: #00BFA5;">
+            <span class="feature-icon material-icons">notifications</span>
+            <h3>Alert System</h3>
+            <p>Instant notifications for critical air quality changes and health alerts</p>
+        </div></a>
+    </div>
+
+    <div class="team-section">
+    <h2>Our Team</h2>
+    <div class="team-grid">
+        <div class="team-member">
+            <img class="member-photo" src="1.jpg" alt="Shrikeysh">
+            <h3>Shrikeysh</h3>
+            <p>Team Leader</p>
+        </div>
+        <div class="team-member">
+            <img class="member-photo" src="2.jpg" alt="Shrivatsa S Kulkarni">
+            <h3>Shrivatsa S Kulkarni</h3>
+            <p>Team Member</p>
+        </div>
+        <div class="team-member">
+            <img class="member-photo" src="3.jpg" alt="Adithya R Kulkarni">
+            <h3>Adithya R Kulkarni</h3>
+            <p>Team Member</p>
+        </div>
+        <div class="team-member">
+            <img class="member-photo" src="4.jpg" alt="Yashwanth Gowda">
+            <h3>Yashwanth Gowda</h3>
+            <p>Team Member</p>
+        </div>
+    </div>
+</div>
+
+        <!-- Add more team members as needed -->
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2025 AeroIQ. All rights reserved.</p>
+    </footer>
+
+    <script>
+        function fetchAlerts() {
+            fetch('/alerts', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(alerts => {
+                alerts.forEach(alert => {
+                    showAlert(alert);
+                });
+            })
+            .catch(error => console.error('Error fetching alerts:', error));
+        }
+
+        function showAlert(message) {
+            const popup = document.createElement('div');
+            popup.className = 'popup';
+            popup.textContent = message;
+
+            document.body.appendChild(popup);
+
+            // Remove the popup after 5 seconds
+            setTimeout(() => {
+                popup.remove();
+            }, 5000);
+        }
+
+        // Fetch alerts every 10 seconds
+        setInterval(fetchAlerts, 10000);
+        fetchAlerts(); // Initial fetch
+
+        document.getElementById('myForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            // Handle form submission via AJAX
+        });
+
+        document.getElementById('getStartedButton').addEventListener('click', function() {
+            // Get the target section
+            const targetSection = document.getElementById('targetSection');
+            
+            // Scroll to the target section smoothly
+            targetSection.scrollIntoView({ behavior: 'smooth' });
+        });
+    </script>
+</body>
+</html>
