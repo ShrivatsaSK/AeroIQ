@@ -2,8 +2,8 @@
 #include <WebServer.h>
 
 // Replace with your network credentials
-const char* ssid = "realme7";
-const char* password = "realme_7";
+const char* ssid = "";
+const char* password = "";
 
 // MQ-135 analog input pin
 const int mq135Pin = 34;  // GPIO36 (ADC1_CH0)
